@@ -20,10 +20,10 @@ public class mainPet {
                 addPets();
             }
             if (choice == 3){
-                //updatePet();
+                updatePet();
             }
             if (choice == 4){
-                //removePet();
+                removePet();
             }
             if(choice == 5){
                 searchPetsByName();
@@ -36,6 +36,48 @@ public class mainPet {
                 break;
             }
         }
+    }
+
+    // removePet method
+    public static void removePet(){
+        showAllPets();
+        System.out.print("Enter the pet ID to remove: ");
+        int remove = s.nextInt();
+                
+        // my idea here is to assign each object after the index they want to remove to the index number before it
+        int indexStart = remove;
+        // while the index they want to remove is less than the petCount - 1 (so the program doesnt try to reassign a pet that doesnt exist when the user wants to remove the pet with the highest id), re-assign the object with the index right after the one they want to remove and so on
+        while (indexStart < petCount - 1){
+            pets[indexStart] = new Pet(pets[indexStart + 1].getName(), pets[indexStart + 1].getAge()); 
+            indexStart++;
+        }
+        // de-increment the petCount because after this loop they have removed a pet
+        petCount--;
+        System.out.println();
+    }
+    
+    // updatePet method
+    public static void updatePet(){
+        showAllPets();
+        System.out.print("Enter the pet ID you wish to update: ");
+        int petId = s.nextInt();
+        s.nextLine();
+        System.out.print("Enter the new name and age: ");
+        String petString = s.nextLine();
+        // very similar idea to adding pets
+        String[] petNameAndAge = petString.split(" ");
+        String petName = petNameAndAge[0];
+        int petAge = Integer.parseInt(petNameAndAge[1]);
+        Pet tempPet = new Pet();
+        tempPet.setName(petName);
+        tempPet.setAge(petAge);
+        // print the object before its updated
+        System.out.print(pets[petId].getName() + " " + pets[petId].getAge() + " changed to ");
+        // update the pet the user wants with the new name and age they entered
+        pets[petId] = new Pet(tempPet.getName(), tempPet.getAge());
+        // print the new pet in the same line as the print statement above
+        System.out.println(pets[petId].getName() + " " + pets[petId].getAge());
+        System.out.println();
     }
 
     // searchPetsByName method
