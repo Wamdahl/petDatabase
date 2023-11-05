@@ -26,16 +26,51 @@ public class mainPet {
                 //removePet();
             }
             if(choice == 5){
-                //searchPetsByName();
+                searchPetsByName();
             }
             if(choice == 6){
-                //searchPetsByAge();
+                searchPetsByAge();
             }
             if(choice == 7){
                 System.out.println("Goodbye!");
                 break;
             }
         }
+    }
+
+    // searchPetsByName method
+    public static void searchPetsByName(){
+        System.out.print("Enter a name to search: ");
+        String searchName = s.nextLine();
+        int j = 0;
+        printTableHeader();
+        // for each pet
+        while(j < petCount){
+            // if the pet name equals the users seachName then print that row
+            if(pets[j].getName().equals(searchName)){
+                printTableRow(j, pets[j].getName(), pets[j].getAge());
+            }
+            j++;
+        }
+        printTableFooter();
+    }
+
+    // searchPetsByAge method
+    public static void searchPetsByAge(){
+        System.out.print("Enter an age to search: ");
+        int searchAge = s.nextInt();
+        s.nextLine();
+        int j = 0;
+        printTableHeader();
+        // for each pet
+        while(j < petCount){
+            // if the pet age equals the users searchAge then print that row
+            if(pets[j].getAge() == searchAge){
+                printTableRow(j, pets[j].getName(), pets[j].getAge());
+            }
+            j++;
+        }
+        printTableFooter();
     }
 
     // addPets method
