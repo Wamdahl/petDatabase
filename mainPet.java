@@ -1,11 +1,15 @@
+import java.io.FileInputStream;
+import java.io.PrintWriter;
 import java.util.*;
 public class mainPet {
     static Pet[] pets = new Pet[100];
     static int petCount = 0;
     static int rowCount = 0;
+    static String filename = "pets.txt";
     static Scanner s = new Scanner(System.in);
 
     public static void main(String[] args) throws Exception {
+        loadDatabase();
         while (true) {
             // rowCount restarts at 0 for each iteration and gets incremented upon printing a row
             // this way it will display the correct number of rows printed when searching for pets
@@ -32,12 +36,60 @@ public class mainPet {
                 searchPetsByAge();
             }
             if(choice == 7){
+                saveDatabase();
                 System.out.println("Goodbye!");
                 break;
             }
         }
     }
 
+    // addPet method to load pets from file
+    public static void addPet(String name, int age){
+        // create a default pet to set the name and age, then assign the tempPet to the proper index in pets[]
+        Pet tempPet = new Pet();
+        tempPet.setName(name);
+        tempPet.setAge(age);
+        pets[petCount] = new Pet(tempPet.getName(), tempPet.getAge());
+        petCount++;
+        
+    }
+
+    // loadDatabase method 
+    public static void loadDatabase() throws Exception {
+        // open the file to read
+        FileInputStream fis = new FileInputStream(filename);
+        Scanner read = new Scanner(fis);
+
+        // as long as the file isnt empty
+        if(fis != null){
+            // while there is still a line
+            while(read.hasNextLine()){
+                String line = read.nextLine();
+
+                String[] petNameAndAge = line.split(" ");
+                String petName = petNameAndAge[0];
+                int petAge = Integer.parseInt(petNameAndAge[1]);
+
+                addPet(petName, petAge);
+            }
+            read.close();
+        }
+    }
+
+    // saveDatabase method
+    public static void saveDatabase() throws Exception{
+        // open the file, this will override pets.txt each time it is saved
+        PrintWriter w = new PrintWriter(filename);
+
+        // print each pet
+        int h = 0;
+        while (h < petCount){
+            w.println(pets[h].getName() +" "+ pets[h].getAge());
+            h++;
+        }
+        w.close();
+    }
+    
     // removePet method
     public static void removePet(){
         showAllPets();
