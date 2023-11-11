@@ -3,6 +3,7 @@ import java.io.PrintWriter;
 import java.util.*;
 public class mainPet {
     static Pet[] pets = new Pet[100];
+    static int capacity = 5;
     static int petCount = 0;
     static int rowCount = 0;
     static String filename = "pets.txt";
@@ -24,34 +25,54 @@ public class mainPet {
                 addPets();
             }
             if (choice == 3){
-                updatePet();
-            }
-            if (choice == 4){
+                //updatePet();
                 removePet();
             }
-            if(choice == 5){
+            if (choice == 4){
                 searchPetsByName();
             }
-            if(choice == 6){
+            if(choice == 5){
                 searchPetsByAge();
             }
-            if(choice == 7){
+            if(choice == 6){
                 saveDatabase();
                 System.out.println("Goodbye!");
                 break;
             }
+            //if(choice == 7){
+                
+            //}
         }
     }
 
+    // parseArgument method
+    public static String[] parseArgument(String line) throws InvalidArgumentException {
+        // split the line into a string name and a string age
+        String[] petNameAndAge = line.split(" ");
+
+        // if the line isnt valid
+        if (petNameAndAge.length != 2){
+            throw new InvalidArgumentException();
+        }
+        
+        return petNameAndAge;
+    }
+
     // addPet method to load pets from file
-    public static void addPet(String name, int age){
+    public static void addPet(String name, int age) throws FullDatabaseException, InvalidAgeException{
+        // throw exceptions that can happen when adding a pet
+        if(petCount == capacity){
+            throw new FullDatabaseException();
+        }
+        if(age < 1 || age > 20){
+            throw new InvalidAgeException();
+        }
         // create a default pet to set the name and age, then assign the tempPet to the proper index in pets[]
         Pet tempPet = new Pet();
         tempPet.setName(name);
         tempPet.setAge(age);
         pets[petCount] = new Pet(tempPet.getName(), tempPet.getAge());
         petCount++;
-        
     }
 
     // loadDatabase method 
@@ -91,23 +112,39 @@ public class mainPet {
     }
     
     // removePet method
-    public static void removePet(){
+    public static void removePet() throws InvalidIdException{
         showAllPets();
         System.out.print("Enter the pet ID to remove: ");
-        int remove = s.nextInt();
-                
-        // my idea here is to assign each object after the index they want to remove to the index number before it
-        int indexStart = remove;
-        // while the index they want to remove is less than the petCount - 1 (so the program doesnt try to reassign a pet that doesnt exist when the user wants to remove the pet with the highest id), re-assign the object with the index right after the one they want to remove and so on
-        while (indexStart < petCount - 1){
-            pets[indexStart] = new Pet(pets[indexStart + 1].getName(), pets[indexStart + 1].getAge()); 
-            indexStart++;
+        String removeString = s.nextLine();
+        
+        // try to remove a pet
+        try{
+            // try to parse removeString to an int, if it fails parseInt will throw NumberFormatException that i will make look like InvalidIdException
+            int remove = Integer.parseInt(removeString);
+            if(remove < 0 || remove >= petCount){
+                throw new InvalidIdException();
+            }
+            // if exception is not thrown continue
+            // my idea here is to assign each object after the index they want to remove to the index number before it
+            int indexStart = remove;
+            // while the index they want to remove is less than the petCount - 1 (so the program doesnt try to reassign a pet that doesnt exist when the user wants to remove the pet with the highest id), re-assign the object with the index right after the one they want to remove and so on
+            while (indexStart < petCount - 1){
+                pets[indexStart] = new Pet(pets[indexStart + 1].getName(), pets[indexStart + 1].getAge()); 
+                indexStart++;
+            }
+            // de-increment the petCount because after this loop they have removed a pet
+            petCount--;
+            System.out.println();
         }
-        // de-increment the petCount because after this loop they have removed a pet
-        petCount--;
-        System.out.println();
+        // catch InvalidIdException and NumberFormatException if remove is not valid
+        catch(InvalidIdException iie){
+            System.out.println("InvalidIdException: ID " + removeString + " does not exist.");
+        }
+        catch(NumberFormatException nfe){
+            System.out.println("InvalidIdException: ID " + removeString + " does not exist.");
+        }
     }
-    
+    /* not needed for this assignment
     // updatePet method
     public static void updatePet(){
         showAllPets();
@@ -131,6 +168,7 @@ public class mainPet {
         System.out.println(pets[petId].getName() + " " + pets[petId].getAge());
         System.out.println();
     }
+*/
 
     // searchPetsByName method
     public static void searchPetsByName(){
@@ -168,7 +206,10 @@ public class mainPet {
     }
 
     // addPets method
-    public static void addPets(){
+    public static void addPets() throws FullDatabaseException, InvalidAgeException, InvalidArgumentException{
+        if(petCount == capacity){
+            throw new FullDatabaseException();
+        }
         while(true){
             System.out.print("add pet (name, age): ");
             String petString = s.nextLine();
@@ -177,16 +218,35 @@ public class mainPet {
                 System.out.println();
                 break;
             }
-            // otherwise split the line into a string name and a string age
-            String[] petNameAndAge = petString.split(" ");
-            String petName = petNameAndAge[0];
-            int petAge = Integer.parseInt(petNameAndAge[1]);
-            // create a default pet to set the name and age, then assign the tempPet to the proper index in pets[]
-            Pet tempPet = new Pet();
-            tempPet.setName(petName);
-            tempPet.setAge(petAge);
-            pets[petCount] = new Pet(tempPet.getName(), tempPet.getAge());
-            petCount++;
+
+            try{
+                // otherwise try to split the line, throw InvalidArgumentException if petNameAndAge != 2 (parseArgument does this)
+                // also throw NumberFormatException (parseInt does this) if the age the user entered is not valid, but i will make that appear as a InvalidArgumentException
+                String[] petNameAndAge = parseArgument(petString);
+                String petName = petNameAndAge[0];
+                int petAge = Integer.parseInt(petNameAndAge[1]);
+
+                // now try to add the pet
+                try{
+                    addPet(petName, petAge);
+                }
+                // catch FullDatabaseException
+                catch(FullDatabaseException fde){
+                    System.out.println("FullDatabaseException: Database is full.");
+                }
+                // catch invalid age exception
+                catch(InvalidAgeException iae){
+                    System.out.println("InvalidPetAge: " + petAge + " is not a valid age.");
+                }
+            }
+            // catch InvalidArgumentException
+            catch(InvalidArgumentException eiae){
+                System.out.println("InvalidArgumentException: "+ petString + " is not a valid input");
+            }
+            // this is my solution to keep the program going if the user doesnt enter an integer for the age, where i just show InvalidArgumentException
+            catch(NumberFormatException nfe){
+                System.out.println("InvalidArgumentException: "+ petString + " is not a valid input");
+            }
         }
     }
 
@@ -196,11 +256,11 @@ public class mainPet {
         System.out.println("What would you like to do?");
         System.out.println("1) View all pets");
         System.out.println("2) Add more pets");
-        System.out.println("3) Update an existing pet");
-        System.out.println("4) Remove an existing pet");
-        System.out.println("5) Search pets by name");
-        System.out.println("6) Search pets by age");
-        System.out.println("7) Exit program");	
+        //System.out.println("3) Update an existing pet");
+        System.out.println("3) Remove an existing pet");
+        System.out.println("4) Search pets by name");
+        System.out.println("5) Search pets by age");
+        System.out.println("6) Exit program");	
         System.out.print("Your choice: ");
         // return choice
         int choice = s.nextInt();
